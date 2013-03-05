@@ -129,8 +129,11 @@
 
 - (void)setupResponseHandlers {
 	self.requestHandlers = [@{} mutableCopy];
-	
+
 	__weak __typeof__(self) weakSelf = self;
+    
+    
+    // =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourceInterpreter requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		
 		NSString *input = [[request body] objectForKey:kSuperNetworkMessageBodyInputKey];
@@ -164,6 +167,7 @@
 	}];
 	
 	
+    // =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourceSymbolTable requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		
 		
@@ -171,6 +175,7 @@
 	}];
 	
 	
+    // =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourceClassList requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		NSArray *classList = classNames();
 		if ([weakSelf.projectPrefix length])
@@ -187,6 +192,8 @@
 
 	}];
 	
+    
+    // =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourceImageData
                         requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
                             
@@ -231,6 +238,8 @@
          return response;
      }];
     
+    
+    // =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourcePropertyList requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		NSMutableDictionary *body = [@{} mutableCopy];
 		NSString *input = [[request body] objectForKey:kSuperNetworkMessageBodyInputKey];
@@ -260,7 +269,39 @@
 		return response;
 	}];
 	
-	
+    
+    // =============================================================================================
+    [self addRequestHandlerForResource:kSuperNetworkMessageResourceLs requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
+		NSMutableDictionary *body = [@{} mutableCopy];
+		NSString *input = [[request body] objectForKey:kSuperNetworkMessageBodyInputKey];
+        input = [@"self " stringByAppendingString:input];
+		SuperInterpreterObjectBrowser *objectBrowser = [SuperInterpreterObjectBrowser new];
+		
+		FSInterpreterResult *result = [weakSelf interpreterResultForInput:input logResult:USE_LOGGING];
+		
+		NSLog(@"[SERVER]: Listing properties for input: %@", input);
+		
+		if ([result isOK]) {
+			NSLog(@"FSOK: %@", [result result]);
+			id object = [result result];
+			NSArray *properties = [objectBrowser propertiesForObject:object];
+			[body setObject:kSuperNetworkMessageBodyStatusOK forKey:kSuperNetworkMessageBodyStatusKey];
+			[body setObject:properties forKey:kSuperNetworkMessageBodyOutputKey];
+		} else {
+			NSLog(@"FSBAD: %@", [result errorMessage]);
+			[body setObject:kSuperNetworkMessageBodyStatusError forKey:kSuperNetworkMessageBodyStatusKey];
+			[body setObject:[result errorMessage] forKey:kSuperNetworkMessageBodyErrorMessageKey];
+			
+			NSRange range = [result errorRange];
+			[body setObject:NSStringFromRange(range) forKey:kSuperNetworkMessageBodyErrorRange];
+		}
+		
+		SuperNetworkMessage *response = [SuperNetworkMessage messageWithHeader:request.header body:body];
+		return response;
+	}];
+
+
+	// =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourceMethodList requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		NSMutableDictionary *body = [@{} mutableCopy];
 		NSString *input = [[request body] objectForKey:kSuperNetworkMessageBodyInputKey];
@@ -291,6 +332,7 @@
 	}];
 	
 	
+	// =============================================================================================
 	[self addRequestHandlerForResource:kSuperNetworkMessageResourceUpdateCurrentSelfPointer requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		NSLog(@"[SERVER]: Updating the current view controller.");
 		NSMutableDictionary *body = [@{} mutableCopy];
@@ -326,7 +368,61 @@
 	}];
 	
 	
-	[self addRequestHandlerForResource:kSuperNetworkMessageResourceDeviceLoggingSettings requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
+	// =============================================================================================
+	[self addRequestHandlerForResource:kSuperNetworkMessageResourceSetSelfPointer requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
+		
+		NSMutableDictionary *body = [@{} mutableCopy];
+        NSString *input = [[request body] objectForKey:kSuperNetworkMessageBodyInputKey];
+        
+        static NSMutableArray *
+        
+        // Handle "cd .."
+        if (input isEqualToString:@"..") {
+            
+        } else {
+            input = [@"self " stringByAppendingString:input];
+        }
+        
+        FSInterpreterResult *result = [weakSelf interpreterResultForInput:input logResult:USE_LOGGING];
+        
+        NSLog(@"[SERVER]: Setting the current self pointer to: %@.", input);
+        
+        if ([result isOK] == NO) {
+            NSLog(@"FSBAD: %@", [result errorMessage]);
+            [body setObject:kSuperNetworkMessageBodyStatusError forKey:kSuperNetworkMessageBodyStatusKey];
+            [body setObject:[result errorMessage] forKey:kSuperNetworkMessageBodyErrorMessageKey];
+            
+            NSRange range = [result errorRange];
+            [body setObject:NSStringFromRange(range) forKey:kSuperNetworkMessageBodyErrorRange];
+            
+            SuperNetworkMessage *response = [SuperNetworkMessage messageWithHeader:request.header body:body];
+            return response;
+        }
+		
+		// Assign this object in the environment and
+		// evaluate self and get the result to be returned to the client.
+        id newSelf = [result result];
+		[weakSelf.interpreter setObject:newSelf forIdentifier:@"self"];
+		
+        result = [weakSelf interpreterResultForInput:@"self" logResult:USE_LOGGING];
+		if ([result isOK]) {
+			[body setObject:kSuperNetworkMessageBodyStatusOK forKey:kSuperNetworkMessageBodyStatusKey];
+			[body setObject:[[result result] description] forKey:kSuperNetworkMessageBodyOutputKey];
+		} else {
+			NSLog(@"FSBAD: %@", [result errorMessage]);
+			[body setObject:kSuperNetworkMessageBodyStatusError forKey:kSuperNetworkMessageBodyStatusKey];
+			[body setObject:[result errorMessage] forKey:kSuperNetworkMessageBodyErrorMessageKey];
+			
+			NSRange range = [result errorRange];
+			[body setObject:NSStringFromRange(range) forKey:kSuperNetworkMessageBodyErrorRange];
+		}
+		SuperNetworkMessage *response = [SuperNetworkMessage messageWithHeader:request.header body:body];
+		return response;
+	}];
+
+	
+    // =============================================================================================
+    [self addRequestHandlerForResource:kSuperNetworkMessageResourceDeviceLoggingSettings requestHandler:^SuperNetworkMessage *(SuperNetworkMessage *request) {
 		
 		NSString *input = [[request body] objectForKey:kSuperNetworkMessageBodyInputKey];
 		

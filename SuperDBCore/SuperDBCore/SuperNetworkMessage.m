@@ -54,8 +54,10 @@ NSString *kSuperNetworkMessageResourceInterpreter = @"interpreter";
 NSString *kSuperNetworkMessageResourceSymbolTable = @"smybol_table";
 NSString *kSuperNetworkMessageResourceClassList = @"class_list";
 NSString *kSuperNetworkMessageResourcePropertyList = @"property_list";
+NSString *kSuperNetworkMessageResourceLs = @"ls";
 NSString *kSuperNetworkMessageResourceMethodList = @"method_list";
 NSString *kSuperNetworkMessageResourceUpdateCurrentSelfPointer = @"update_current_self_pointer";
+NSString *kSuperNetworkMessageResourceSetSelfPointer = @"set_self_pointer";
 NSString *kSuperNetworkMessageResourceDeviceLoggingSettings = @"device_logging";
 NSString *kSuperNetworkMessageResourceImageData = @"image_data";
 
@@ -71,9 +73,11 @@ NSString *kSuperNetworkMessageResourceImageData = @"image_data";
 	headerTypes = @[ @"SuperNetworkMessageTypeHandshake",
 					 @"SuperNetworkMessageTypeRequestResponse" ];
 	resourceTypes = @{	@".prop" : kSuperNetworkMessageResourcePropertyList,
+                        @".ls" : kSuperNetworkMessageResourceLs,
 						@".classes" : kSuperNetworkMessageResourceClassList,
 						@".methods" : kSuperNetworkMessageResourceMethodList,
 						@".self" : kSuperNetworkMessageResourceUpdateCurrentSelfPointer,
+                        @".cd" : kSuperNetworkMessageResourceSetSelfPointer,
 						@".logging" : kSuperNetworkMessageResourceDeviceLoggingSettings,
     					@".image" : kSuperNetworkMessageResourceImageData};
 }

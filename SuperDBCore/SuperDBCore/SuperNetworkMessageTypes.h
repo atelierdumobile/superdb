@@ -57,8 +57,10 @@ extern NSString *kSuperNetworkMessageResourceInterpreter;
 extern NSString *kSuperNetworkMessageResourceSymbolTable;
 extern NSString *kSuperNetworkMessageResourceClassList;
 extern NSString *kSuperNetworkMessageResourcePropertyList;
+extern NSString *kSuperNetworkMessageResourceLs;
 extern NSString *kSuperNetworkMessageResourceMethodList;
 extern NSString *kSuperNetworkMessageResourceUpdateCurrentSelfPointer;
+extern NSString *kSuperNetworkMessageResourceSetSelfPointer;
 extern NSString *kSuperNetworkMessageResourceDeviceLoggingSettings;
 extern NSString *kSuperNetworkMessageResourceImageData;
 
