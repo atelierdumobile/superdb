@@ -81,8 +81,9 @@
 			NSString *choppedInput = [self longInputFromCommand:input];
 			NSString *choppedCommand = [self commandFromCommand:input];
 			
-            __weak __typeof__(self) weakSelf = self;
-
+//            __weak __typeof__(self) weakSelf = self;
+            SuperDebugAreaWindowController *weakSelf = self;
+            
 			[self.networkClient requestWithCommand:choppedCommand input:choppedInput responseHandler:^(SuperNetworkMessage *response) {
 				if ([[[response body] objectForKey:kSuperNetworkMessageBodyStatusKey] isEqualToString:kSuperNetworkMessageBodyStatusOK]) {
                     
